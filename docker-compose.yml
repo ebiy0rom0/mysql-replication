@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  mysql_master:
+    image: mysql:latest
+    volumes:
+      - ./mysql/master/conf.d:/etc/mysql/conf.d
+      - ./mysql/master/volumes:/var/lib/mysql
+      - ./mysql/master/initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+    hostname: mysqldb10
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD
+
+  mysql_slave:
+    image: mysql:latest
+    volumes:
+      - ./mysql/slave/conf.d:/etc/mysql/conf.d
+      - ./mysql/slave/volumes:/var/lib/mysql
+      - ./mysql/slave/initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+    hostname: mysqldb11
+    ports:
+      - "33060:33060"
+    depends_on:
+      mysql_master:
+        condition: service_healthy
